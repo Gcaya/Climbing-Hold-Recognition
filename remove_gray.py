@@ -1,14 +1,17 @@
+#%%
 import os
 import sys
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import Image
 
 
-
+#%%
 def remove_gray(cv_image):
 
     cv_image = cv2.resize(cv_image, (int(cv_image.shape[1]/5), int(cv_image.shape[0]/5)))
-    tol = 15
+    tolerance = 12
 
     for x in range(0, cv_image.shape[0] - 1):
         for y in range(0, cv_image.shape[1] - 1):
@@ -17,20 +20,23 @@ def remove_gray(cv_image):
             g = int(pixel[1])
             b = int(pixel[2])
 
-            if abs(r - g) <= tol and abs(g - b) <= tol:
+            if abs(r - g) <= tolerance and abs(g - b) <= tolerance:
                 cv_image[x, y] = [0, 0, 0]
 
     return cv_image
 
-    lower_color_bounds = np.array([100, 50, 11])
-    upper_color_bounds = np.array([255,190,170])
+#%%  
+def mser_color(cv_image, lower_color_bound, upper_color_bound):
 
-    mask = cv2.inRange(cv_image,lower_color_bounds,upper_color_bounds)
+    lower_bound = np.array(lower_color_bound)
+    upper_bound = np.array(upper_color_bound)
+
+    mask = cv2.inRange(cv_image, lower_bound, upper_bound)
     mask_rgb = cv2.cvtColor(mask,cv2.COLOR_GRAY2BGR)
 
     cv_image = cv_image & mask_rgb
 
-    mser = cv2.MSER_create(_min_area=5, _max_area=1000)
+    mser = cv2.MSER_create(_min_area=250, _max_area=2000, _max_evolution=50000)
     regions , _ = mser.detectRegions(cv_image)
 
     for p in regions:
@@ -39,14 +45,21 @@ def remove_gray(cv_image):
         cv2.rectangle(cv_image, (xmin,ymax), (xmax,ymin), (0, 255, 0), 1)
 
     return cv_image
-    
 
-def main(argv):
-    file_path = argv[1]
-    save_path = argv[2]
+#%%
+cv_image = cv2.imread(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\Sample-Data\\1.png')
 
-    cv2.imwrite('2_' + save_path, remove_gray(cv2.imread(file_path)))
+#lower_color_bounds = (, [164, 131, 92], [160, 108, 71], [159, 113, 65], [138, 122, 110])
+#upper_color_bounds = ([150, 138, 128], [144, 93,  43], [127, 106, 98], [110, 84,  70], )
+
+lower_color_bounds = ([100, 50, 11], [78, 40, 10])
+upper_color_bounds = ([255, 180, 100], [180, 187, 100])
+
+for x in range(0, 2):
+    mser_image = mser_color(cv_image, lower_color_bounds[x], upper_color_bounds[x])
+    cv2.imwrite(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\Sample-Result\result' + str(x) + r'.png',mser_image)
 
 
-if __name__=='__main__':
-    main(sys.argv)
+
+#plt.figure(num=None, figsize=(8, 6), dpi=300, facecolor='w', edgecolor='k')
+#plt.imshow(mser_image)
