@@ -8,22 +8,21 @@ from IPython.display import Image
 
 
 #%%
-def remove_gray(cv_image):
+def change_hsv(cv_image, hue_rotation):
 
-    cv_image = cv2.resize(cv_image, (int(cv_image.shape[1]/5), int(cv_image.shape[0]/5)))
-    tolerance = 12
+    image = cv_image.copy()
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    for x in range(0, cv_image.shape[0] - 1):
-        for y in range(0, cv_image.shape[1] - 1):
-            pixel = cv_image[x, y]
-            r = int(pixel[0])
-            g = int(pixel[1])
-            b = int(pixel[2])
+    for x in range(0, hsv_image.shape[0]):
+        for y in range(0, hsv_image.shape[1]):
+            pixel = hsv_image[x, y]
+            h = int(pixel[0])
+            s = int(pixel[1])
+            v = int(pixel[2])
 
-            if abs(r - g) <= tolerance and abs(g - b) <= tolerance:
-                cv_image[x, y] = [0, 0, 0]
+            hsv_image[x, y] = [int(h + hue_rotation) % 180, s, v]
 
-    return cv_image
+    return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
 #%%  
 def mser_color(cv_image, lower_color_bound, upper_color_bound):
@@ -47,10 +46,10 @@ def mser_color(cv_image, lower_color_bound, upper_color_bound):
     return cv_image
 
 #%%
-cv_image = cv2.imread(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\Sample-Data\\1.png')
+cv_image = cv2.imread(r'D:\Climbing-Hold-Recognition\Sample-Data\\3.png')
 
-#lower_color_bounds = (, [164, 131, 92], [160, 108, 71], [159, 113, 65], [138, 122, 110])
-#upper_color_bounds = ([150, 138, 128], [144, 93,  43], [127, 106, 98], [110, 84,  70], )
+image = change_hue(cv_image, 90)
+cv2.imwrite(r'D:\Climbing-Hold-Recognition\Sample-Result\result.png', image)
 
 lower_blue_color_bounds = ([100, 50, 10], [130, 50, 10], [130, 29, 0])
 upper_blue_color_bounds = ([255, 180, 100], [255, 180, 100], [255, 100, 80])
@@ -60,9 +59,6 @@ upper_yellow_color_bounds = ([118, 172, 202], [118, 172, 202], [110, 180, 210], 
 
 for x in range(0, 3):
     mser_image = mser_color(cv_image, lower_blue_color_bounds[x], upper_blue_color_bounds[x])
-    cv2.imwrite(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\Sample-Result\result' + str(x) + r'.png',mser_image)
+    cv2.imwrite(r'D:\Climbing-Hold-Recognition\Sample-Result\result' + str(x) + r'.png',mser_image)
 
 
-
-#plt.figure(num=None, figsize=(8, 6), dpi=300, facecolor='w', edgecolor='k')
-#plt.imshow(mser_image)
