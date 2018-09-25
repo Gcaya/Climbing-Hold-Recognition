@@ -36,7 +36,7 @@ def mser_color(cv_image, lower_color_bound, upper_color_bound):
 
     cv_image = cv_image & mask_rgb
 
-    mser = cv2.MSER_create(_min_area=250, _max_area=2000, _max_evolution=50000)
+    mser = cv2.MSER_create(_min_area=250, _max_area=30000, _max_evolution=50000)
     regions , _ = mser.detectRegions(cv_image)
 
     for p in regions:
@@ -52,14 +52,14 @@ cv_image = cv2.imread(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\S
 #lower_color_bounds = (, [164, 131, 92], [160, 108, 71], [159, 113, 65], [138, 122, 110])
 #upper_color_bounds = ([150, 138, 128], [144, 93,  43], [127, 106, 98], [110, 84,  70], )
 
-lower_blue_color_bounds = ([100, 50, 10], [130, 50, 10])
-upper_blue_color_bounds = ([255, 180, 100], [255, 180, 100])
+lower_blue_color_bounds = ([100, 50, 10], [130, 50, 10], [130, 29, 0])
+upper_blue_color_bounds = ([255, 180, 100], [255, 180, 100], [255, 100, 80])
 
-lower_yellow_color_bounds = ([2, 140, 180], [2, 130, 160], [2, 90, 140], [2, 90, 140])
-upper_yellow_color_bounds = ([118, 172, 202], [118, 172, 202], [110, 180, 210], [150, 190, 210])
+lower_yellow_color_bounds = ([2, 140, 180], [2, 130, 160], [2, 90, 140], [253, 235, 222])
+upper_yellow_color_bounds = ([118, 172, 202], [118, 172, 202], [110, 180, 210], [255, 29, 0])
 
-for x in range(0, 4):
-    mser_image = mser_color(cv_image, lower_yellow_color_bounds[x], upper_yellow_color_bounds[x])
+for x in range(0, 3):
+    mser_image = mser_color(cv_image, lower_blue_color_bounds[x], upper_blue_color_bounds[x])
     cv2.imwrite(r'C:\Users\Guillaume\Documents\Climbing-Hold-Recognition\Sample-Result\result' + str(x) + r'.png',mser_image)
 
 
