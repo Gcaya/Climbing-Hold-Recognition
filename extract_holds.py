@@ -2,9 +2,12 @@
 import os
 import sys
 import cv2
+import uuid
 import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import Image
+from os import listdir
+from os.path import isfile, join
 
 
 #%%
@@ -35,7 +38,7 @@ def mser_color(cv_image, lower_color_bound, upper_color_bound):
 
     cv_image = cv_image & mask_rgb
 
-    mser = cv2.MSER_create(_min_area=250, _max_area=30000, _max_evolution=50000)
+    mser = cv2.MSER_create(_min_area=250, _max_area=50000, _max_evolution=50000)
     regions , _ = mser.detectRegions(cv_image)
 
     for p in regions:
@@ -46,19 +49,34 @@ def mser_color(cv_image, lower_color_bound, upper_color_bound):
     return cv_image
 
 #%%
-cv_image = cv2.imread(r'D:\Climbing-Hold-Recognition\Sample-Data\\3.png')
+def main(args):
 
-image = change_hue(cv_image, 90)
-cv2.imwrite(r'D:\Climbing-Hold-Recognition\Sample-Result\result.png', image)
+    source_path = args[1]
+    dest_path = args[2]
 
-lower_blue_color_bounds = ([100, 50, 10], [130, 50, 10], [130, 29, 0])
-upper_blue_color_bounds = ([255, 180, 100], [255, 180, 100], [255, 100, 80])
+    images = []
+    lower_blue_color_bounds = [[100, 50, 10], [130, 50, 10]]
+    upper_blue_color_bounds = [[255, 180, 100], [255, 180, 100]]
+    holds_hsv_transformations = [('yellow', 90), ('green', 70), ('red', 60)]
 
-lower_yellow_color_bounds = ([2, 140, 180], [2, 130, 160], [2, 90, 140], [253, 235, 222])
-upper_yellow_color_bounds = ([118, 172, 202], [118, 172, 202], [110, 180, 210], [255, 29, 0])
+    picture_files = [p for p in listdir(source_path) if isfile(join(source_path, p))]
 
-for x in range(0, 3):
-    mser_image = mser_color(cv_image, lower_blue_color_bounds[x], upper_blue_color_bounds[x])
-    cv2.imwrite(r'D:\Climbing-Hold-Recognition\Sample-Result\result' + str(x) + r'.png',mser_image)
+    for image_name in picture_files:
+
+        cv_image = cv2.imread(os.path.join(source_path, image_name))
+        file_extension = os.path.splitext(image_name)[1]
+
+        # Transform images so that holds can be detected with blue threshold
+        for trans in holds_hsv_transformations:
+            images.append(change_hsv(cv_image, trans[1]))
+
+        for image in images:
+            for x in range(0, 2):
+                mser_image = mser_color(cv_image, lower_blue_color_bounds[x], upper_blue_color_bounds[x])
+                cv2.imwrite(os.path.join(dest_path, str(uuid.uuid4()) + file_extension), mser_image)
+
+if __name__=='__main__':
+    main(sys.argv)
+
 
 
