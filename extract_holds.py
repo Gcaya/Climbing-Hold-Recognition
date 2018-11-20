@@ -28,7 +28,7 @@ def change_hsv(cv_image, hue_rotation):
     return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
 #%%  
-def mser_extract_regions(cv_image, lower_color_bound, upper_color_bound):
+def mser_extract_regions(cv_image, lower_color_bound, upper_color_bound) -> [[Region, int]]:
 
     image = cv_image.copy()
     lower_bound = np.array(lower_color_bound)
@@ -42,19 +42,19 @@ def mser_extract_regions(cv_image, lower_color_bound, upper_color_bound):
     mser = cv2.MSER_create(_min_area=250, _max_area=50000, _max_evolution=50000)
     regions , _ = mser.detectRegions(masked_image)
 
-    return regions
+    detected_regions = []
 
-#%%
-def combine_regions(image, detected_regions):
-
-    regions = []
-    final_regions = []
-
-    for p in detected_regions:
+    for p in regions:
         xmax, ymax = np.amax(p, axis=0)
         xmin, ymin = np.amin(p, axis=0)
+        detected_regions.append([Region(xmax, xmin, ymax, ymin), 0])
 
-        regions.append([Region(xmax, xmin, ymax, ymin), 0])
+    return detected_regions
+
+#%%
+def combine_regions(image, regions) -> [Region]:
+
+    final_regions = []
 
     while True:
         region = None
@@ -79,22 +79,24 @@ def combine_regions(image, detected_regions):
                 if(region.try_combine(potential_region)):
                     regions[x][1] = 1
 
-        final_regions.append(region)
+        final_regions.append([region, 0])
 
     return final_regions
 
 #%%
-def crop_regions_from_image(original_image, regions_to_crop:[Region]):
+def crop_regions_from_image(original_image, regions_to_crop:[Region]) -> []:
 
     image = original_image.copy()
+    holds = []
 
-    for p in regions_to_crop:
-        x_center, y_center = p.get_center_point()
-        radius = p.get_radius()
+    for r in regions_to_crop:
+        p = r[0]
+        dimension = max(p.x_max - p.x_min, p.y_max - p.y_min)
 
-        image = cv2.circle(image, (x_center, y_center), int(radius), (0, 255, 0), 1)
+        hold = original_image[p.y_min:p.y_min + dimension, p.x_min:p.x_min + dimension]
+        holds.append(hold)
 
-    return image            
+    return holds            
 
 
 #%%
@@ -125,8 +127,12 @@ def main(args):
         image = image_infos[0]
         detected_regions = mser_extract_regions(image, lower_blue_color_bounds, upper_blue_color_bounds)
         final_regions = combine_regions(image, detected_regions)
-        result_image = crop_regions_from_image(image, final_regions)
-        cv2.imwrite(os.path.join(dest_path, str(uuid.uuid4()) + image_infos[1]), result_image)
+        final_regions = combine_regions(image, final_regions)
+
+        result_holds = crop_regions_from_image(original_image, final_regions)
+
+        for hold in result_holds:
+            cv2.imwrite(os.path.join(dest_path, str(uuid.uuid4()) + image_infos[1]), hold)
 
 if __name__=='__main__':
     main(sys.argv)
