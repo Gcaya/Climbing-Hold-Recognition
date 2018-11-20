@@ -105,7 +105,6 @@ def main(args):
     source_path = args[1]
     dest_path = args[2]
 
-    hsv_modified_images = []
     lower_blue_color_bounds = [130, 50, 10]
     upper_blue_color_bounds = [255, 180, 100]
     holds_hsv_transformations = [('blue', 0), ('yellow', 90), ('green', 70), ('red', 115)]
@@ -114,6 +113,7 @@ def main(args):
 
     # Get every hue variation of an image
     for image_name in picture_files:
+        hsv_modified_images = []
         original_image = cv2.imread(os.path.join(source_path, image_name))
         file_extension = os.path.splitext(image_name)[1]
 
@@ -122,17 +122,17 @@ def main(args):
             hsv_modified_image = change_hsv(original_image, trans[1])
             hsv_modified_images.append((hsv_modified_image, file_extension))
 
-    # Extract holds on every image
-    for image_infos in hsv_modified_images:
-        image = image_infos[0]
-        detected_regions = mser_extract_regions(image, lower_blue_color_bounds, upper_blue_color_bounds)
-        final_regions = combine_regions(image, detected_regions)
-        final_regions = combine_regions(image, final_regions)
+        # Extract holds on every image
+        for image_infos in hsv_modified_images:
+            image = image_infos[0]
+            detected_regions = mser_extract_regions(image, lower_blue_color_bounds, upper_blue_color_bounds)
+            final_regions = combine_regions(image, detected_regions)
+            final_regions = combine_regions(image, final_regions)
 
-        result_holds = crop_regions_from_image(original_image, final_regions)
+            result_holds = crop_regions_from_image(original_image, final_regions)
 
-        for hold in result_holds:
-            cv2.imwrite(os.path.join(dest_path, str(uuid.uuid4()) + image_infos[1]), hold)
+            for hold in result_holds:
+                cv2.imwrite(os.path.join(dest_path, str(uuid.uuid4()) + image_infos[1]), hold)
 
 if __name__=='__main__':
     main(sys.argv)
