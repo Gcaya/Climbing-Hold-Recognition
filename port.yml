@@ -1,0 +1,12 @@
+- identifier: Climbing-Hold-Recognition
+  title: Climbing-Hold-Recognition
+  team: []
+  icon: Github
+  blueprint: service
+  properties:
+    readme: file://readme.md
+    url: https://github.com/Gcaya/Climbing-Hold-Recognition
+    language: Python
+    slack: https://workleap.slack.com/archives/C0425MHF3NX
+    tier: Mission Critical
+  relations: {}
